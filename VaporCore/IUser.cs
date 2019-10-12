@@ -18,6 +18,6 @@ namespace VaporCore
 		public virtual Status Status { get; set; }
 		public virtual string IP { get; set; }
 		public virtual Guid UUID { get; set; }
-		string PassKey { get; set; }
+		
 	}
 }

@@ -47,6 +47,7 @@ namespace VaporCore
 							PassKey = FromClient.Substring(FromClient.IndexOf("\u0003") + 1)
 						};
 						UserList.Add(user.UUID, user);
+						CUser h = user;
 						File.WriteAllText("dict.json", JsonConvert.SerializeObject(UserList));
 					}
 					
