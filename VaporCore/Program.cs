@@ -32,9 +32,9 @@ namespace VaporCore
 				NetStream.Read(bytesFrom, 0, clientSocket.ReceiveBufferSize);
 				FromClient = GetString(bytesFrom);
 				FromClient = FromClient.Substring(0, FromClient.IndexOf('\0'));
-				if (FromClient[0..3] == "req")
+				if (FromClient[0..3] == "req") //requesting server action
 				{
-					if (FromClient[3..6] == "reg")
+					if (FromClient[3..6] == "reg") //register account
 					{
 						
 						var user = new PUser
