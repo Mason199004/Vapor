@@ -50,6 +50,14 @@ namespace VaporCore
 						
 						File.WriteAllText("dict.json", JsonConvert.SerializeObject(UserList));
 					}
+					else if (FromClient[3..6] == "msg")
+					{
+						SentMessage msg = JsonConvert.DeserializeObject<SentMessage>(FromClient[7..]);
+						if (UserList.ContainsKey(msg.Recipient))
+						{
+							UserList[msg.Recipient].SendMessage(msg);
+						}
+					}
 					
 				}
 			}
