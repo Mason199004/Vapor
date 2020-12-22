@@ -7,6 +7,7 @@ using System.Collections;
 using System.Net;
 using System.IO;
 using Newtonsoft.Json;
+using fNbt.Tags;
 
 namespace VaporCore
 {
@@ -30,37 +31,32 @@ namespace VaporCore
 				clientSocket = serverSocket.AcceptTcpClient();
 				NetworkStream NetStream = clientSocket.GetStream();
 				NetStream.Read(bytesFrom, 0, clientSocket.ReceiveBufferSize);
-				FromClient = GetString(bytesFrom);
-				FromClient = FromClient.Substring(0, FromClient.IndexOf('\0'));
-				if (FromClient[0..3] == "req") //requesting server action
+				MemoryStream stream = new MemoryStream();
+				stream.Write(bytesFrom, 0, bytesFrom.Length);
+				var rr = new fNbt.NbtFile();
+				rr.LoadFromBuffer(bytesFrom, 0, 65536, fNbt.NbtCompression.GZip);
+				var root = rr.RootTag;
+				switch ((ReqType)(root["Type"] as NbtInt).IntValue)
 				{
-					if (FromClient[3..6] == "reg") //register account
-					{
-						
-						var user = new PUser
+					case ReqType.REGISTER:
+						var uuid = Guid.NewGuid();
+						UserList.Add(uuid, new PUser
 						{
-							UserName = FromClient.Substring(6, FromClient.IndexOf("\u0003") - 6),
-							NickName = FromClient.Substring(6, FromClient.IndexOf("\u0003") - 6),
-							Status = Status.Online,
-							IP = ((IPEndPoint)clientSocket.Client.RemoteEndPoint).Address.ToString(),
-							UUID = Guid.NewGuid(),
-							PassKey = FromClient.Substring(FromClient.IndexOf("\u0003") + 1)
-						};
-						UserList.Add(user.UUID, user);
-						
-						File.WriteAllText("dict.json", JsonConvert.SerializeObject(UserList));
-					}
-					else if (FromClient[3..6] == "msg")
-					{
-						SentMessage msg = JsonConvert.DeserializeObject<SentMessage>(FromClient[7..]);
-						if (UserList.ContainsKey(msg.Recipient))
-						{
-							UserList[msg.Recipient].SendMessage(msg);
-						}
-					}
-					
+							UserName = root["Data"]["UserName"].StringValue,
+							NickName = root["Data"]["UserName"].StringValue,
+							UUID = uuid,
+							PassKey = root["Data"]["PassKey"].StringValue
+						});
+						NetStream.Write(uuid.ToByteArray(), 0, uuid.ToByteArray().Length);
+						break;
 				}
+				
 			}
 		}
+	}
+	enum ReqType : int
+	{
+		REGISTER = 0,
+		SEND_MESSAGE = 1
 	}
 }

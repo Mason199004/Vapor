@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using fNbt.Tags;
+using System.IO;
 
 namespace VaporTestClientCLI
 {
@@ -12,16 +14,28 @@ namespace VaporTestClientCLI
 		static NetworkStream serverStream = default(NetworkStream);
 		static void Main(string[] args)
 		{
-			clientSocket.Connect("10.0.0.49", 8888);
+			clientSocket.Connect("localhost", 8888);
 			serverStream = clientSocket.GetStream();
-			string bruh = "reqregMason\u0003";
+
+			string bruh = "";
 			var h = SHA256.Create();
 			bruh += Encoding.UTF8.GetString(h.ComputeHash(Encoding.UTF8.GetBytes("somebodyoncetoldme")));
+			var root = new NbtCompound("root")
+			{
+				new NbtInt("Type", 0),
+				new NbtCompound("Data")
+				{
+					new NbtString("UserName", "Mason"),
+					new NbtString("PassKey", bruh)
+				}
+			};
+			byte[] outStream = new byte[65536];
+			new fNbt.NbtFile(root).SaveToBuffer(outStream, 0, fNbt.NbtCompression.GZip);
 			
-			
-			byte[] outStream = System.Text.Encoding.UTF8.GetBytes(bruh);
 			serverStream.Write(outStream, 0, outStream.Length);
-			serverStream.Flush();
+			byte[] uuid = new byte[16];
+			serverStream.Read(uuid, 0, 16);
+			Console.WriteLine(new Guid(uuid));
 			Console.ReadLine();
 		}
 	}

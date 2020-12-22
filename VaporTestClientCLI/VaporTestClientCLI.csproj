@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CoreFNBT" Version="1.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\VaporCore\VaporCore.csproj" />
   </ItemGroup>
 
